@@ -93,7 +93,7 @@ class FragmentGrowCoordinator:
             "critical_count": crit_count,
             "warning_count": warn_count,
             "alerts": [a.to_dict() for a in all_alerts],
-            "standard_specification": "Congreve Rule of Three for FBDD",
+            "standard_specification": "Legacy prototype threshold rules",
             "consensus_summary": f"Consensus evaluation completed across 3 sub-agents with status [{status.value}].",
         }
 
@@ -105,6 +105,6 @@ class FragmentGrowCoordinator:
         if "status" in q or "ledger" in q:
             return f"FragmentGrow: Fragment-Based Drug Discovery (FBDD) Linking & Growing Agent currently managing {len(self.execution_ledger)} execution tasks in air-gapped memory."
         elif "standard" in q or "spec" in q:
-            return "Active runtime operating strictly according to Congreve Rule of Three for FBDD specifications."
+            return "Legacy prototype specifications are not the Congreve Rule of Three for FBDD; use the separate descriptor screen for that assessment."
         else:
-            return f"FragmentGrow: Fragment-Based Drug Discovery (FBDD) Linking & Growing Agent executive coordinator online. Zero-telemetry on-premises surveillance active."
+            return f"FragmentGrow: Fragment-Based Drug Discovery (FBDD) Linking & Growing Agent executive coordinator online. This response is a deterministic local status message, not live monitoring."
