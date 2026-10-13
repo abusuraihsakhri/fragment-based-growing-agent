@@ -46,9 +46,21 @@ jobs:
       - name: Scan installed dependencies for known vulnerabilities
         run: python -m pip_audit
 
+  container-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build container
+        run: docker build -t fragmentgrow:ci .
+      - name: Test container health endpoint
+        run: |
+          docker run -d --name fragmentgrow-smoke -p 127.0.0.1:18080:8000 fragmentgrow:ci
+          trap 'docker rm -f fragmentgrow-smoke >/dev/null 2>&1 || true' EXIT
+          curl --fail --silent --show-error --retry 12 --retry-delay 2 --retry-connrefused http://127.0.0.1:18080/health
+
   deploy-pages:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: [verify, dependency-audit]
+    needs: [verify, dependency-audit, container-smoke]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -69,7 +81,7 @@ jobs:
 
   publish-release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: [verify, dependency-audit]
+    needs: [verify, dependency-audit, container-smoke]
     runs-on: ubuntu-latest
     permissions:
       contents: write
