@@ -11,19 +11,19 @@ coordinator = FragmentGrowCoordinator()
 def create_app():
     try:
         from fastapi import FastAPI
-        from pydantic import BaseModel
+        from pydantic import BaseModel, Field
 
         app = FastAPI(
             title="FragmentGrow: Fragment-Based Drug Discovery (FBDD) Linking & Growing Agent",
-            description="Evaluates fragment screening hits (MW < 300, LogP < 3, Rule of 3), assesses synthetic tractability (SAscore), and plans pharmacophore linking vectors.",
-            version="2.0.0-FRONTIER",
+            description="Legacy heuristic threshold service. Does not compute molecular properties, SAscore, docking or linking vectors.",
+            version="2.0.1",
         )
 
         class TaskRequest(BaseModel):
             task_id: str = "TASK-2026-001"
             target_identifier: str = "TARGET-BIO-KEY"
-            primary_metric: float = 28.5
-            secondary_metric: float = 14.2
+            primary_metric: float = Field(default=28.5, allow_inf_nan=False)
+            secondary_metric: float = Field(default=14.2, allow_inf_nan=False)
             status_descriptor: str = "DISCORDANT_ANOMALY"
             is_critical_flag: bool = True
             attributes: Dict[str, Any] = {}

@@ -1,40 +1,102 @@
-name: Fragment Based Growing Engine CI/CD & Security Verification
+name: Test, security checks and Pages deployment
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [master, main]
   pull_request:
-    branches: [ master, main ]
+    branches: [master, main]
+
+permissions:
+  contents: read
 
 jobs:
-  test-and-audit:
+  verify:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install project and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[server,test]"
+      - name: Check installed dependencies
+        run: python -m pip check
+      - name: Check Python syntax
+        run: python -m compileall -q agents fragment_grow cli.py enrichment.py simulator.py tests
+      - name: Run tests
+        run: python -m pytest -q
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install project and audit tool
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[server,test]" pip-audit
+      - name: Scan installed dependencies for known vulnerabilities
+        run: python -m pip_audit
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install fastapi uvicorn pydantic pytest
+  container-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build container
+        run: docker build -t fragmentgrow:ci .
+      - name: Test container health endpoint
+        run: |
+          docker run -d --name fragmentgrow-smoke -p 127.0.0.1:18080:8000 fragmentgrow:ci
+          trap 'docker rm -f fragmentgrow-smoke >/dev/null 2>&1 || true' EXIT
+          curl --fail --silent --show-error --retry 12 --retry-delay 2 --retry-connrefused http://127.0.0.1:18080/health
+          curl --fail --silent --show-error -X POST http://127.0.0.1:18080/api/audit \
+            -H 'Content-Type: application/json' \
+            -d '{"task_id":"CI-1","target_identifier":"fragment-1","primary_metric":12,"secondary_metric":4,"status_descriptor":"NOMINAL"}' \
+            | python -c 'import json,sys; a=json.load(sys.stdin); assert a["overall_urgency"]=="ROUTINE"; assert a["total_alerts"]==0'
 
-    - name: Run Pytest Suite
-      run: |
-        pytest -v
+  deploy-pages:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [verify, dependency-audit, container-smoke]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./web
+      - name: Publish static browser interface
+        id: deployment
+        uses: actions/deploy-pages@v4
 
-    - name: Security SAST & Zero-PHI Audit
-      run: |
-        python -c "
-        from agents.base import PHIGuard, AuditLogger
-        import pytest
-        assert AuditLogger.verify_integrity() is True
-        print('Security & Zero-PHI Audit Passed!')
-        "
+  publish-release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [verify, dependency-audit, container-smoke]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Create v2.0.1 release if absent
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v2.0.1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "v2.0.1 already published"
+            exit 0
+          fi
+          gh release create v2.0.1 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "v2.0.1" --notes-file RELEASE_NOTES.md
