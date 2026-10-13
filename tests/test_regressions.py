@@ -14,6 +14,7 @@ from cli import main as enterprise_main
 from fragment_grow.cli import main as legacy_main
 from fragment_grow.validation import parse_csv_bool
 from fragment_grow.ro3 import assess_rule_of_three
+from fragment_grow.engine import FrontierDomainEngine
 
 
 def test_audit_signature_detects_tampering_and_external_changes():
@@ -57,6 +58,13 @@ def test_nonfinite_api_metrics_rejected():
     for value in (math.nan, math.inf, -math.inf):
         with pytest.raises(ValidationError):
             SystemTaskPayload(task_id="A", target_identifier="B", primary_metric=value)
+
+
+def test_legacy_nonfinite_metrics_rejected():
+    with pytest.raises(ValueError):
+        FrontierDomainEngine.evaluate_primary_parameter(math.nan)
+    with pytest.raises(ValueError):
+        FrontierDomainEngine.evaluate_secondary_kinetics(math.inf, True)
 
 
 def test_unimplemented_providers_fail_explicitly():
