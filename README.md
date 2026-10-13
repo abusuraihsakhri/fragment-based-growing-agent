@@ -43,7 +43,7 @@ curl -X POST http://127.0.0.1:8000/api/audit \
 
 The browser interface runs locally, without network requests or uploads. The Python API is intended for controlled local use; it **has no authentication or rate limiting** and should not be exposed directly to the public internet. The regex-based sensitive-identifier guard is incomplete and does not establish HIPAA compliance or guaranteed PHI removal. Do not supply patient information or confidential data.
 
-The audit trail is maintained **in memory** and is lost at process shutdown. Set `AUDIT_SECRET_KEY` to a unique secret managed outside source control when stable signature keys are needed; otherwise a random process-local key is generated. Rotating any previously hard-coded keys is recommended. The endpoint `/api/audit/logs` exposes audit metadata and should be restricted by deployment controls.
+The audit trail is maintained **in memory** and is lost at process shutdown. Set `AUDIT_SECRET_KEY` to a unique secret managed outside source control when stable signature keys are needed; otherwise a random process-local key is generated. Rotating any previously hard-coded keys is recommended. The endpoint `/api/audit/logs` is disabled unless `AUDIT_LOGS_TOKEN` is set; once configured it requires the HTTP header `Authorization: Bearer <token>`. Protect the service behind authentication at the network boundary as well.
 
 For Docker Compose, configure the secret in your environment, then run:
 
