@@ -8,6 +8,8 @@ import sys
 from agents.models import SystemTaskPayload
 from agents.supervisor import SystemSupervisor
 from agents.base import AuditLogger
+from fragment_grow.validation import parse_csv_bool
+from fragment_grow.ro3 import assess_rule_of_three
 
 supervisor = SystemSupervisor(model_provider="mock")
 
@@ -42,7 +44,18 @@ def main(argv=None):
     p_serve.add_argument("--host", default="127.0.0.1")
     p_serve.add_argument("--port", type=int, default=8000)
 
+    p_ro3 = subparsers.add_parser("ro3", help="Evaluate fragment descriptors using the Rule of Three")
+    p_ro3.add_argument("--mw", type=float, required=True, help="Molecular weight, Da")
+    p_ro3.add_argument("--clogp", type=float, required=True, help="Calculated logP")
+    p_ro3.add_argument("--hbd", type=int, required=True, help="Hydrogen bond donors")
+    p_ro3.add_argument("--hba", type=int, required=True, help="Hydrogen bond acceptors")
+
     args = parser.parse_args(argv)
+
+    if args.command == "ro3":
+        result = assess_rule_of_three(args.mw, args.clogp, args.hbd, args.hba)
+        print(json.dumps(result, indent=2))
+        return 0
 
     if args.command == "audit":
         payload = SystemTaskPayload(
@@ -85,7 +98,7 @@ def main(argv=None):
             fieldnames = list(reader.fieldnames or [])
             rows = list(reader)
 
-        out_fields = fieldnames + ["overall_urgency", "integrity_status", "total_alerts", "audit_hash"]
+        out_fields = list(dict.fromkeys(fieldnames + ["overall_urgency", "integrity_status", "total_alerts", "audit_hash"]))
         out_rows = []
         for r in rows:
             payload = SystemTaskPayload(
@@ -94,7 +107,7 @@ def main(argv=None):
                 primary_metric=float(r.get("primary_metric", 15.0)),
                 secondary_metric=float(r.get("secondary_metric", 5.0)),
                 status_descriptor=r.get("status_descriptor", "NOMINAL"),
-                is_critical_flag=bool(r.get("is_critical_flag", False)),
+                is_critical_flag=parse_csv_bool(r.get("is_critical_flag", False)),
             )
             dossier = supervisor.process_task(payload)
             row_dict = dict(r)
