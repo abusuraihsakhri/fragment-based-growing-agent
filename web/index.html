@@ -1,236 +1,184 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fragment Based Growing Engine — Operations Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #090d16;
-            --card: #111827;
-            --border: #1f293d;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.25);
-            --text: #f3f4f6;
-            --text-muted: #9ca3af;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 2rem;
-            min-height: 100vh;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .header-title h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
-        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: var(--accent-glow);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 1.5rem;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: #0d1322;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-        .btn {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 1.4rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn:hover { background: #2563eb; }
-        .terminal {
-            background: #060911;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: #10b981;
-            height: 380px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .metrics-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .metric-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-        .metric-val { font-size: 1.4rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>FragmentGrow — Fragment screening workspace</title>
+  <style>
+    :root{color-scheme:dark;--bg:#090f1b;--panel:#111c2c;--border:#29405a;--muted:#a6b9ca;--fg:#edf5ff;--accent:#61d4bb;--bad:#ff9b9b}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+    main{max-width:1060px;margin:auto;padding:30px 22px 60px}
+    header{display:flex;justify-content:space-between;gap:24px;align-items:start;border-bottom:1px solid var(--border);padding-bottom:26px}
+    h1{font-size:clamp(1.75rem,3vw,2.55rem);letter-spacing:-.035em;line-height:1.18;margin:.3rem 0 .6rem}
+    h2{font-size:1.16rem;margin:0 0 15px}p{margin:.4rem 0 1rem}small,.muted{color:var(--muted)}
+    .eyebrow{font-size:.76rem;text-transform:uppercase;letter-spacing:.15em;color:var(--accent);font-weight:700}
+    a{color:#9de3ff}a:hover{text-decoration:none}
+    .overview{display:flex;gap:14px;flex-wrap:wrap;margin-top:20px}
+    .pill{font-size:.81rem;color:var(--muted);border:1px solid var(--border);padding:5px 10px;border-radius:30px}
+    .columns{display:grid;grid-template-columns:minmax(320px,1fr) minmax(320px,1fr);gap:20px;margin-top:24px}
+    .card{border:1px solid var(--border);border-radius:14px;background:var(--panel);padding:24px;min-width:0}
+    .card p{color:var(--muted);font-size:.91rem}.fieldgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{display:block;font-size:.85rem;font-weight:600;margin-bottom:5px}
+    input:not([type=checkbox]),select{width:100%;height:42px;background:#0b1524;color:var(--fg);border:1px solid #435773;border-radius:7px;padding:8px 12px;font:inherit}
+    input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+    input:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+    .field{margin:0 0 14px}.checkline{display:flex;align-items:center;gap:10px;margin-top:12px}
+    .checkline label{margin:0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+    button{background:var(--accent);border:1px solid var(--accent);color:#071925;font-weight:750;border-radius:8px;padding:11px 16px;cursor:pointer;font:inherit}
+    button.secondary{background:transparent;color:var(--fg);border-color:#64809b}button:disabled{opacity:.45;cursor:not-allowed}
+    .result{white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid var(--border);background:#0b1524;padding:16px;border-radius:8px;min-height:140px;font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}
+    .result[data-kind=pass]{border-color:#368e7c}.result[data-kind=fail]{border-color:#b36565}
+    .result-title{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+    .hint{margin-top:14px;border-left:3px solid #5f90c8;padding:6px 0 6px 12px;color:var(--muted);font-size:.85rem}
+    .section-title{margin:32px 0 14px}footer{border-top:1px solid var(--border);padding-top:20px;margin-top:32px;color:var(--muted);font-size:.83rem}
+    @media(max-width:780px){.columns{grid-template-columns:1fr}header{flex-direction:column}.card{padding:19px}}
+    @media(max-width:450px){main{padding:20px 13px 40px}.fieldgrid{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
-
-    <div class="header">
-        <div class="header-title">
-            <h1>Fragment Based Growing Engine</h1>
-            <p>Domain: Clinical & Cryptographic AI | Standard: CAP / CLSI / NIST Standards | LabMind-Atlas Architecture</p>
-        </div>
-        <div>
-            <span class="badge">Air-Gapped Active</span>
-            <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border-color: #10b981;">Zero-PHI Guard Active</span>
-        </div>
+<main>
+  <header>
+    <div>
+      <span class="eyebrow">Computational chemistry / local screening</span>
+      <h1>FragmentGrow</h1>
+      <p class="muted">Descriptor-based Rule-of-Three screening and legacy threshold evaluation.</p>
+      <div class="overview"><span class="pill">Runs in your browser</span><span class="pill">No account or API key</span><span class="pill">No molecular structure generation</span></div>
     </div>
+    <a href="https://github.com/abusuraihsakhri/fragment-based-growing-agent">Source repository ↗</a>
+  </header>
 
-    <div class="metrics-bar">
-        <div class="metric-box">
-            <div class="metric-label">System Status</div>
-            <div class="metric-val" style="color: var(--success);" id="m-status">OPTIMAL</div>
+  <div class="columns">
+    <section class="card" aria-labelledby="screen-title">
+      <h2 id="screen-title">Rule-of-Three screen</h2>
+      <p>Enter calculated physicochemical descriptors. This screen uses MW &lt; 300 Da and cLogP, HBD and HBA ≤ 3.</p>
+      <form id="ro3-form">
+        <div class="fieldgrid">
+          <div class="field"><label for="mw">Molecular weight (Da)</label><input id="mw" name="mw" type="number" step="any" min="0.000001" value="245" required></div>
+          <div class="field"><label for="clogp">Calculated logP</label><input id="clogp" name="clogp" type="number" step="any" value="2.1" required></div>
+          <div class="field"><label for="hbd">H-bond donors</label><input id="hbd" name="hbd" type="number" step="1" min="0" value="2" required></div>
+          <div class="field"><label for="hba">H-bond acceptors</label><input id="hba" name="hba" type="number" step="1" min="0" value="3" required></div>
         </div>
-        <div class="metric-box">
-            <div class="metric-label">Tasks Processed</div>
-            <div class="metric-val" id="m-tasks">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Audit Blocks Signed</div>
-            <div class="metric-val" id="m-audit">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">PHI Interceptions</div>
-            <div class="metric-val" style="color: var(--accent);" id="m-phi">0</div>
-        </div>
-    </div>
+        <div class="actions"><button type="submit">Assess fragment</button></div>
+      </form>
+      <div class="hint">A heuristic library filter, not a predictor of binding affinity, toxicity, synthetic accessibility, or target compatibility.</div>
+    </section>
 
-    <div class="grid">
-        <div class="card">
-            <h2>⚙️ Dispatch Distributed Component Audit</h2>
-            <div class="form-group">
-                <label>Task / Sample ID</label>
-                <input type="text" id="task_id" value="TASK-2026-LIVE-01">
-            </div>
-            <div class="form-group">
-                <label>Target Identifier</label>
-                <input type="text" id="target_id" value="SPECIMEN-ALPHA-77">
-            </div>
-            <div class="form-group">
-                <label>Primary Measurement / Value</label>
-                <input type="number" id="primary_metric" value="29.4" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Secondary Metric / Kinetic Index</label>
-                <input type="number" id="secondary_metric" value="14.8" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Status / Phenotype Descriptor</label>
-                <input type="text" id="status_descriptor" value="DISCORDANT_ANOMALY">
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="is_critical" checked> Trigger Emergency / Critical Flag</label>
-            </div>
-            <button class="btn" onclick="runAudit()">Execute Distributed Component Audit</button>
+    <section class="card" aria-labelledby="ro3-result-title">
+      <div class="result-title"><h2 id="ro3-result-title">Fragment assessment</h2><button class="secondary" type="button" id="download-ro3" disabled>Export JSON</button></div>
+      <div class="result" id="ro3-result" role="status" aria-live="polite">Enter descriptors and select Assess fragment.</div>
+      <p>For precision, descriptor values must be calculated independently. No SMILES or structure parsing is performed here.</p>
+    </section>
+  </div>
+
+  <h2 class="section-title">Legacy telemetry heuristic</h2>
+  <div class="columns">
+    <section class="card" aria-labelledby="heuristic-title">
+      <h2 id="heuristic-title">Generic threshold audit</h2>
+      <p>Preserves the older Python worker logic. Numeric thresholds are arbitrary prototype settings, not the Rule of Three.</p>
+      <form id="audit-form">
+        <div class="field"><label for="task">Task identifier</label><input id="task" name="task" type="text" maxlength="100" value="TASK-001" required></div>
+        <div class="fieldgrid">
+          <div class="field"><label for="primary">Primary metric</label><input id="primary" name="primary" type="number" step="any" value="28.5" required></div>
+          <div class="field"><label for="secondary">Secondary metric</label><input id="secondary" name="secondary" type="number" step="any" value="14.2" required></div>
         </div>
-
-        <div class="card">
-            <h2>📊 Real-Time Consensus Dossier & Audit Log</h2>
-            <div class="terminal" id="outputConsole">// Fragment Based Growing Engine Operations Console Ready
-// Connection established with Air-Gapped Supervisor
-// Cryptographic HMAC-SHA256 audit ledger loaded.
-// Ready for live task payload dispatch...</div>
-        </div>
-    </div>
-
-    <script>
-        async function runAudit() {
-            const consoleEl = document.getElementById('outputConsole');
-            consoleEl.innerText = "// Dispatching task across specialized workers...
-// Invoking InvariantQCWorker, SafetyEscalationWorker, ProtocolWorker...";
-
-            const payload = {
-                task_id: document.getElementById('task_id').value,
-                target_identifier: document.getElementById('target_id').value,
-                primary_metric: parseFloat(document.getElementById('primary_metric').value),
-                secondary_metric: parseFloat(document.getElementById('secondary_metric').value),
-                status_descriptor: document.getElementById('status_descriptor').value,
-                is_critical_flag: document.getElementById('is_critical').checked
-            };
-
-            try {
-                const res = await fetch('/api/audit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                consoleEl.innerText = JSON.stringify(data, null, 2);
-                document.getElementById('m-tasks').innerText = parseInt(document.getElementById('m-tasks').innerText) + 1;
-                document.getElementById('m-audit').innerText = parseInt(document.getElementById('m-audit').innerText) + 1;
-            } catch (err) {
-                consoleEl.innerText = "// Offline / Simulation Output:\n" + JSON.stringify({
-                    dossier_id: "DOSSIER-SIM-" + Math.floor(Math.random()*10000),
-                    system: "fragment-based-growing-engine",
-                    domain: "Clinical & Cryptographic AI",
-                    task_id: payload.task_id,
-                    overall_urgency: payload.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK",
-                    integrity_status: "DISCORDANT_ANOMALY",
-                    alerts: [
-                        { worker: "InvariantQCWorker", alert: "Primary metric exceeds upper reference bound" },
-                        { worker: "SafetyEscalationWorker", alert: "Critical emergency interlock flag active" }
-                    ],
-                    audit_hash: "HMAC_SHA256_e83f9a72b941d6c381f9"
-                }, null, 2);
-            }
-        }
-    </script>
+        <div class="field"><label for="descriptor">Status descriptor</label><input id="descriptor" name="descriptor" type="text" maxlength="100" value="DISCORDANT" required></div>
+        <div class="checkline"><input type="checkbox" id="critical"><label for="critical">Set critical flag</label></div>
+        <div class="actions"><button type="submit">Evaluate thresholds</button></div>
+      </form>
+    </section>
+    <section class="card">
+      <div class="result-title"><h2>Heuristic output</h2><button class="secondary" type="button" id="download-audit" disabled>Export JSON</button></div>
+      <div class="result" id="audit-result" role="status" aria-live="polite">No evaluation performed.</div>
+      <p>This browser preview is deterministic and local. It does not create HMAC audit records or invoke the Python API.</p>
+    </section>
+  </div>
+  <footer>
+    <p>Privacy: entries are processed in this page and are not transmitted to a server. Export creates a local JSON file. Do not treat heuristic results as experimental confirmation or clinical advice.</p>
+    <p>Rule-of-Three reference: Congreve et al., <em>Drug Discovery Today</em> (2003), 8:876–877.</p>
+  </footer>
+</main>
+<script>
+"use strict";
+const state = {ro3: null, audit: null};
+const $ = id => document.getElementById(id);
+function numeric(id, options = {}) {
+  const value = $(id).value.trim();
+  const n = Number(value);
+  if (!value || !Number.isFinite(n) || (options.positive && n <= 0) ||
+      (options.nonnegativeInteger && (!Number.isInteger(n) || n < 0))) {
+    throw new Error("Please enter a valid " + $(id).previousElementSibling.textContent.toLowerCase() + ".");
+  }
+  return n;
+}
+function show(id, data, kind) {
+  const el = $(id);
+  el.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+  el.dataset.kind = kind || "";
+}
+$("ro3-form").addEventListener("submit", event => {
+  event.preventDefault();
+  try {
+    const values = {
+      molecular_weight: numeric("mw", {positive: true}),
+      clogp: numeric("clogp"),
+      hydrogen_bond_donors: numeric("hbd", {nonnegativeInteger: true}),
+      hydrogen_bond_acceptors: numeric("hba", {nonnegativeInteger: true})
+    };
+    const criteria = {
+      molecular_weight: values.molecular_weight < 300,
+      clogp: values.clogp <= 3,
+      hydrogen_bond_donors: values.hydrogen_bond_donors <= 3,
+      hydrogen_bond_acceptors: values.hydrogen_bond_acceptors <= 3
+    };
+    const violations = Object.keys(criteria).filter(k => !criteria[k]);
+    state.ro3 = {
+      ...values, passes: violations.length === 0, criteria, violations,
+      reference: "Congreve et al., Drug Discovery Today (2003), Rule of Three",
+      note: "Heuristic descriptor filter; no chemical structure or binding assessment."
+    };
+    show("ro3-result", state.ro3, state.ro3.passes ? "pass" : "fail");
+    $("download-ro3").disabled = false;
+  } catch (error) {
+    state.ro3 = null; $("download-ro3").disabled = true;
+    show("ro3-result", error.message, "fail");
+  }
+});
+$("audit-form").addEventListener("submit", event => {
+  event.preventDefault();
+  try {
+    const primary = numeric("primary");
+    const secondary = numeric("secondary");
+    const critical = $("critical").checked;
+    const descriptor = $("descriptor").value.trim();
+    const task = $("task").value.trim();
+    if (!task || !descriptor) throw new Error("Task ID and descriptor are required.");
+    const alerts = [];
+    if (primary > 25) alerts.push({worker: "InvariantQCWorker", urgency: "ELEVATED_RISK", reason: "Primary metric > 25"});
+    if (secondary > 12 || critical) alerts.push({worker: "SafetyEscalationWorker", urgency: critical ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK", reason: "Secondary metric > 12 or critical flag"});
+    if (["DISCORDANT","ANOMALY","MUTANT","VIOLATION","FAIL","REJECT"].some(word => descriptor.toUpperCase().includes(word)))
+      alerts.push({worker: "ProtocolConformanceWorker", urgency: "ELEVATED_RISK", reason: "Status descriptor matched an anomaly flag"});
+    const urgency = critical ? "CRITICAL_STAT_PANIC" : alerts.length ? "ELEVATED_RISK" : "ROUTINE";
+    state.audit = {task_id: task, primary_metric: primary, secondary_metric: secondary, status_descriptor: descriptor,
+      is_critical_flag: critical, overall_urgency: urgency, total_alerts: alerts.length, alerts,
+      note: "Local heuristic preview only; no signed audit log or experimental validation."};
+    show("audit-result", state.audit, urgency === "ROUTINE" ? "pass" : "fail");
+    $("download-audit").disabled = false;
+  } catch (error) {
+    state.audit = null; $("download-audit").disabled = true;
+    show("audit-result", error.message, "fail");
+  }
+});
+function download(key, filename) {
+  if (!state[key]) return;
+  const blob = new Blob([JSON.stringify(state[key], null, 2) + "\n"], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url; link.download = filename; link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$("download-ro3").addEventListener("click", () => download("ro3", "fragment-ro3.json"));
+$("download-audit").addEventListener("click", () => download("audit", "threshold-audit.json"));
+</script>
 </body>
 </html>
