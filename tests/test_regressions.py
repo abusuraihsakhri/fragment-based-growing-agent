@@ -92,3 +92,10 @@ def test_http_sensitive_input_and_prometheus_metrics():
         assert "system_tasks_total" in metrics.text
         assert metrics.headers["content-type"].startswith("text/plain")
         assert client.get("/api/metrics").status_code == 200
+        assert client.get("/api/audit/logs").status_code == 403
+        from unittest.mock import patch
+        with patch.dict("os.environ", {"AUDIT_LOGS_TOKEN": "test-only-token"}):
+            assert client.get("/api/audit/logs").status_code == 403
+            assert client.get("/api/audit/logs", headers={
+                "Authorization": "Bearer test-only-token"
+            }).status_code == 200
