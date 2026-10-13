@@ -1,8 +1,10 @@
 """
 FastAPI REST API Server for Fragment Based Growing Agent.
 """
-from typing import Dict, Any, List
-from fastapi import FastAPI, HTTPException
+from typing import Dict, Any, List, Optional
+import os
+import hmac
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 from .base import AuditLogger, PHIGuard, SecurityException
@@ -62,5 +64,10 @@ def api_chat(req: ChatRequest):
 
 
 @app.get("/api/audit/logs")
-def api_audit_logs():
+def api_audit_logs(authorization: Optional[str] = Header(default=None)):
+    """Expose operational audit metadata only when explicitly configured."""
+    expected = os.getenv("AUDIT_LOGS_TOKEN")
+    supplied = authorization[7:] if authorization and authorization.startswith("Bearer ") else ""
+    if not expected or not hmac.compare_digest(supplied, expected):
+        raise HTTPException(status_code=403, detail="Audit logs access denied")
     return {"audit_trail": AuditLogger.get_trail(), "verified": AuditLogger.verify_integrity()}
