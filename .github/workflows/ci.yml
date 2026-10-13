@@ -66,3 +66,21 @@ jobs:
       - name: Publish static browser interface
         id: deployment
         uses: actions/deploy-pages@v4
+
+  publish-release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [verify, dependency-audit]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create v2.0.1 release if absent
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v2.0.1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "v2.0.1 already published"
+            exit 0
+          fi
+          gh release create v2.0.1 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "v2.0.1" --notes-file RELEASE_NOTES.md
