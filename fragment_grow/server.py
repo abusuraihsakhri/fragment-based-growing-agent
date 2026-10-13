@@ -15,7 +15,7 @@ def create_app():
 
         app = FastAPI(
             title="FragmentGrow: Fragment-Based Drug Discovery (FBDD) Linking & Growing Agent",
-            description="Evaluates fragment screening hits (MW < 300, LogP < 3, Rule of 3), assesses synthetic tractability (SAscore), and plans pharmacophore linking vectors.",
+            description="Legacy heuristic threshold service. Does not compute molecular properties, SAscore, docking or linking vectors.",
             version="2.0.0-FRONTIER",
         )
 
