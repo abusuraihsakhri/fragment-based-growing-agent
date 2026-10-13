@@ -3,11 +3,15 @@ Supervisor Orchestrator & Operations Intelligence for Fragment Based Growing Age
 Domain: AI Drug Discovery, Structural Biology & Wet-Lab Robotics
 """
 import uuid
+import json
+import time
 from typing import Dict, Any, List, Optional
 from .base import AuditLogger, ActionExecutor, PHIGuard
 from .models import SystemTaskPayload, AgentAlert, ConsensusDossier, UrgencyLevel, SystemIntegrityStatus
 from .workers import InvariantQCWorker, SafetyEscalationWorker, ProtocolConformanceWorker
 from .llm_factory import LLMFactory
+from .metrics import GLOBAL_METRICS
+from .base import SecurityException
 
 
 class SystemSupervisor:
@@ -21,10 +25,15 @@ class SystemSupervisor:
         self.dossier_registry: Dict[str, ConsensusDossier] = {}
 
     def process_task(self, payload: SystemTaskPayload, actor: str = "SystemSupervisor") -> ConsensusDossier:
-        # Zero-PHI outbound validation
-        PHIGuard.assert_no_phi(payload.task_id)
-        PHIGuard.assert_no_phi(payload.target_identifier)
-        PHIGuard.assert_no_phi(payload.status_descriptor)
+        started_at = time.perf_counter()
+        # Pattern matching is a precaution, not a guarantee of de-identification.
+        try:
+            for value in (payload.task_id, payload.target_identifier, payload.status_descriptor, actor):
+                PHIGuard.assert_no_phi(value)
+            PHIGuard.assert_no_phi(json.dumps(payload.attributes, default=str))
+        except SecurityException:
+            GLOBAL_METRICS.record_phi_block()
+            raise
 
         # Multi-worker evaluations
         all_alerts: List[AgentAlert] = []
@@ -71,6 +80,7 @@ class SystemSupervisor:
         )
 
         self.dossier_registry[dossier.dossier_id] = dossier
+        GLOBAL_METRICS.record_task(overall_urgency.value, time.perf_counter() - started_at)
         return dossier
 
     def query_supervisory_chat(self, query: str) -> str:
