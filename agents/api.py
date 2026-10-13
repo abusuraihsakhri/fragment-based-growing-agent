@@ -17,7 +17,7 @@ supervisor = SystemSupervisor(model_provider="mock")
 app = FastAPI(
     title="Fragment Based Growing Agent API",
     description="Prototype rule-based threshold evaluator; not validated chemical or clinical analysis",
-    version="3.0.0-ENTERPRISE",
+    version="2.0.1",
 )
 
 
@@ -27,7 +27,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "fragment-based-growing-agent", "domain": "AI Drug Discovery, Structural Biology & Wet-Lab Robotics", "standard": "wwPDB / IUPAC / OpenSMILES / ISAC Standards", "version": "3.0.0-ENTERPRISE"}
+    return {"status": "HEALTHY", "service": "fragment-based-growing-agent", "domain": "AI Drug Discovery, Structural Biology & Wet-Lab Robotics", "standard": "wwPDB / IUPAC / OpenSMILES / ISAC Standards", "version": "2.0.1"}
 
 
 @app.exception_handler(SecurityException)
