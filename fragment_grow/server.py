@@ -16,7 +16,7 @@ def create_app():
         app = FastAPI(
             title="FragmentGrow: Fragment-Based Drug Discovery (FBDD) Linking & Growing Agent",
             description="Legacy heuristic threshold service. Does not compute molecular properties, SAscore, docking or linking vectors.",
-            version="2.0.0-FRONTIER",
+            version="2.0.1",
         )
 
         class TaskRequest(BaseModel):
