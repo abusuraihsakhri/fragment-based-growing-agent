@@ -16,7 +16,7 @@ supervisor = SystemSupervisor(model_provider="mock")
 
 app = FastAPI(
     title="Fragment Based Growing Agent API",
-    description="Enterprise Distributed Component Platform (AI Drug Discovery, Structural Biology & Wet-Lab Robotics)",
+    description="Prototype rule-based threshold evaluator; not validated chemical or clinical analysis",
     version="3.0.0-ENTERPRISE",
 )
 
@@ -45,7 +45,7 @@ def metrics_json():
     return {
         "dossiers_processed_total": len(supervisor.dossier_registry),
         "audit_blocks_total": len(AuditLogger.get_trail()),
-        "system_status": "NOMINAL_OPTIMAL",
+        "system_status": "RUNNING",
     }
 
 @app.post("/api/audit")
