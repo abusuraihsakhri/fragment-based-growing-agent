@@ -3,8 +3,10 @@ FastAPI REST API Server for Fragment Based Growing Agent.
 """
 from typing import Dict, Any, List
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
-from .base import AuditLogger, PHIGuard
+from .base import AuditLogger, PHIGuard, SecurityException
+from .metrics import GLOBAL_METRICS
 from .models import SystemTaskPayload, ConsensusDossier
 from .supervisor import SystemSupervisor
 
@@ -26,14 +28,23 @@ def health():
     return {"status": "HEALTHY", "service": "fragment-based-growing-agent", "domain": "AI Drug Discovery, Structural Biology & Wet-Lab Robotics", "standard": "wwPDB / IUPAC / OpenSMILES / ISAC Standards", "version": "3.0.0-ENTERPRISE"}
 
 
+@app.exception_handler(SecurityException)
+async def reject_sensitive_input(request, exc):
+    return JSONResponse(status_code=422, content={"detail": "Potential sensitive identifier detected."})
+
+
 @app.get("/metrics")
 def metrics():
+    return PlainTextResponse(GLOBAL_METRICS.export_prometheus_text(), media_type="text/plain; version=0.0.4")
+
+
+@app.get("/api/metrics")
+def metrics_json():
     return {
         "dossiers_processed_total": len(supervisor.dossier_registry),
         "audit_blocks_total": len(AuditLogger.get_trail()),
-        "system_status": "NOMINAL_OPTIMAL"
+        "system_status": "NOMINAL_OPTIMAL",
     }
-
 
 @app.post("/api/audit")
 def api_audit(payload: SystemTaskPayload):
@@ -46,8 +57,8 @@ def api_chat(req: ChatRequest):
     try:
         ans = supervisor.query_supervisory_chat(req.query)
         return {"response": ans}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except SecurityException:
+        raise HTTPException(status_code=422, detail="Potential sensitive identifier detected.")
 
 
 @app.get("/api/audit/logs")
