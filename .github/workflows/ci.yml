@@ -57,6 +57,10 @@ jobs:
           docker run -d --name fragmentgrow-smoke -p 127.0.0.1:18080:8000 fragmentgrow:ci
           trap 'docker rm -f fragmentgrow-smoke >/dev/null 2>&1 || true' EXIT
           curl --fail --silent --show-error --retry 12 --retry-delay 2 --retry-connrefused http://127.0.0.1:18080/health
+          curl --fail --silent --show-error -X POST http://127.0.0.1:18080/api/audit \
+            -H 'Content-Type: application/json' \
+            -d '{"task_id":"CI-1","target_identifier":"fragment-1","primary_metric":12,"secondary_metric":4,"status_descriptor":"NOMINAL"}' \
+            | python -c 'import json,sys; a=json.load(sys.stdin); assert a["overall_urgency"]=="ROUTINE"; assert a["total_alerts"]==0'
 
   deploy-pages:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
